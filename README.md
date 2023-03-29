@@ -20,8 +20,28 @@ Reference: [FreeCodeCamp: Back End Development and APIs](https://www.freecodecam
     - [9. Get Query Parameter Input from the Client](#9-get-query-parameter-input-from-the-client)
     - [10. Use body-parser to Parse POST Requests](#10-use-body-parser-to-parse-post-requests)
     - [11. Get Data from POST Requests](#11-get-data-from-post-requests)
-  - [MongoDB and Mongoose ^soon^](#mongodb-and-mongoose-soon)
+  - [MongoDB and Mongoose](#mongodb-and-mongoose)
+    - [1. Install and Set Up Mongoose](#1-install-and-set-up-mongoose)
+    - [2. Create a module - Schema](#2-create-a-module---schema)
+    - [3. Create and Save a Record of a Model](#3-create-and-save-a-record-of-a-model)
+    - [4. Create Many Records with model.create()](#4-create-many-records-with-modelcreate)
+    - [5. Use model.find() to Search Your Database](#5-use-modelfind-to-search-your-database)
+    - [6. Use model.findOne() to Return a Single Matching Document from Your Database](#6-use-modelfindone-to-return-a-single-matching-document-from-your-database)
+    - [7. Use model.findById() to Search Your Database By \_id](#7-use-modelfindbyid-to-search-your-database-by-_id)
+    - [8. Perform Classic Updates by Running Find, Edit, then Save](#8-perform-classic-updates-by-running-find-edit-then-save)
+    - [9. Perform New Updates on a Document Using model.findOneAndUpdate()](#9-perform-new-updates-on-a-document-using-modelfindoneandupdate)
+    - [10. Delete One Document Using model.findByIdAndRemove](#10-delete-one-document-using-modelfindbyidandremove)
+    - [11. Delete Many Documents with model.remove()](#11-delete-many-documents-with-modelremove)
+    - [12. Chain Search Query Helpers to Narrow Search Results](#12-chain-search-query-helpers-to-narrow-search-results)
   - [Back End Development and APIs Projects ^soon^](#back-end-development-and-apis-projects-soon)
+    - [Project 1: Timestamp Microservice](#project-1-timestamp-microservice)
+      - [Install and Setup](#install-and-setup)
+      - [Requirement and Test](#requirement-and-test)
+      - [Solution](#solution)
+    - [Project 2: Request Header Parser Microservice](#project-2-request-header-parser-microservice)
+    - [Project 3: URL Shortener Microservice](#project-3-url-shortener-microservice)
+    - [Project 4: Exercise Tracker](#project-4-exercise-tracker)
+    - [Project 5: File Metadata Microservice](#project-5-file-metadata-microservice)
 
 ---
 
@@ -531,8 +551,352 @@ module.exports = app;
 
 ---
 
-## MongoDB and Mongoose ^soon^
+## MongoDB and Mongoose
+
+> - **MongoDB** is a database application that stores JSON documents (or records) that you can use in your application. MongoDB is a non-relational or "NoSQL" database, it's means MongoDB stores all associated data within one record, instead of storing it across many preset tables as in a SQL database.
+> - **Mongoose** is a popular npm package for interacting with MongoDB. With Mongoose, you can use plain JavaScript objects instead of JSON, which makes it easier to work with MongoDB.
+
+- **Solution of Course**:
+  - [File `myApp.js`](boilerplate-mongomongoose/myApp.js)
+  - [Full Source `boilerplate-npm.rar`](boilerplate-mongomongoose/boilerplate-mongomongoose.rar)
+
+### 1. Install and Set Up Mongoose
+
+- In my course, I choose a clone repository from GitHub.
+  - This is the GitHub repo [boilerplate-mongomongoose](https://github.com/freeCodeCamp/boilerplate-mongomongoose/).
+  - `git clone https://github.com/freeCodeCamp/boilerplate-mongomongoose.git`.
+- Setup a MongoDB Atlas database follow [this tutorial](https://www.freecodecamp.org/news/get-started-with-mongodb-atlas/)
+
+- Connect to the database using the following syntax:
+  `mongoose.connect(<Your_URI>, { useNewUrlParser: true, useUnifiedTopology: true });`
+
+  :arrow_forward: Challenge: Setup and connected with database
+
+    ``` js
+    <!-- .env file -->
+    MONGO_URI="mongodb+srv://<username>:<password>@cluster0.gb5bnce.mongodb.net/<dbname>?retryWrites=true&w=majority"
+
+    <!-- myApp.js file -->
+    const mongoose = require("mongoose");
+    mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    ```
+
+### 2. Create a module - Schema
+
+A Schema
+: Each schema maps to a MongoDB collection.
+: It defines the shape of the documents within that collection.
+: Schemas are building blocks for Models.
+:  A model allows you to create instances of your objects, called documents.
+
+- :arrow_forward: Challenge: Create a model from the `personSchema` and assign it to the existing variable `Person`.
+  - A required `name` field of type `String`
+  - An `age` field of type `Number`
+  - A `favoriteFoods` field of type `[String]`.
+
+  ``` js
+  const Schema = mongoose.Schema;
+  //If you don't assign it mongoose.Schema to the existing Schema
+  //  you must use mongoose.Schema for each instead of Schema.
+
+  const personSchema = new Schema({
+    name: { type: String, required: true },
+    age: Number,
+    favoriteFoods: [String],
+  });
+
+  const Person = mongoose.model("Person", personSchema);
+  ```
+
+### 3. Create and Save a Record of a Model
+
+- **Note**: Then, call the method document.save() on the returned document instance. Pass to it a callback using the Node convention. This is a common pattern; all the following CRUD methods take a callback function like this as the last argument.
+  
+  ``` js
+  // ...
+  person.save(function(err, data) {
+    //   ...do your stuff here...
+  });
+  ```
+
+- :arrow_forward: **Challenge**: Within the `createAndSavePerson` function, create a document instance using the `Person` model constructor you built before.
+  - Pass to the constructor an object having the fields `name`, `age`, and `favoriteFoods`.
+  - Call the method `document.save()` on the returned document instance
+
+  ``` js
+  const Schema = mongoose.Schema;
+
+  const personSchema = new Schema({
+    name: { type: String, required: true },
+    age: Number,
+    favoriteFoods: [String],
+  });
+
+  const Person = mongoose.model("Person", personSchema);
+
+  const createAndSavePerson = (done) => {
+    let dev = new Person({
+      name: "Khang",
+      age: 22,
+      favoriteFoods: ["Chocolate", "Candy", "Milk", "Coffee"],
+    });
+
+    dev.save((err, data)=> {
+      if (err) {
+        console.log(err);
+      } else {
+        done(null, data);
+      }
+    });
+  };
+  ```
+
+### 4. Create Many Records with model.create()
+
+- To create many instances of models, e.g when seeding a database with initial data, you can use `<Model>.create()` - it takes an array of objects as the first argument, and saves them all in the database.
+
+- :arrow_forward: **Challenge**: Modify the `createManyPeople` function to create many people using `Model.create()` with the argument `arrayOfPeople`.
+
+  ``` js
+  let arrayOfPeople = [
+    {
+      name: "Khang",
+      age: 22,
+      favoriteFoods: ["Chocolate", "Candy", "Milk", "Coffee"],
+    },
+    {
+      name: "Hieu",
+      age: 21,
+      favoriteFoods: ["Fruit", "Milktea", "Hotpot"],
+    },
+  ];
+  const createManyPeople = (arrayOfPeople, done) => {
+    Person.create(arrayOfPeople, (err, data) => {
+      if (err) {
+        console.log(err);
+      } else {
+        done(null, data);
+      }
+    });
+  };
+  ```
+
+### 5. Use model.find() to Search Your Database
+
+- In its simplest usage, `<Model>.find()` accepts a query document (a JSON object) as the first argument, then a callback. Example: `<Model>.find({},()=>{})` It returns an array of matches. It supports an extremely wide range of search options. Read more in the docs.
+
+- :arrow_forward: **Challenge**: Modify the `findPeopleByName` function to find all the people having a given name, using `Model.find() -> [Person]`
+  - Use the function argument `personName` as the search key..
+
+  ``` js
+  const findPeopleByName = (personName, done) => {
+    Person.find(
+      {
+        name: personName,
+      },
+      (err, data) => {
+        if (err) console.log(err);
+        else done(null, data);
+      }
+    );
+  };
+  ```
+
+### 6. Use model.findOne() to Return a Single Matching Document from Your Database
+
+- `<Model>.findOne()` behaves like `<Model>.find()`, but it returns only one document (not an array), even if there are multiple items. It is especially useful when searching by properties that you have declared as unique.
+
+- :arrow_forward: **Challenge**: Modify the `findOneByFood` function to find just one person which has a certain food in the person's favorites, using `Model.findOne() -> Person`.
+  - Use the function argument `food` as search key.
+
+  ``` js
+  const findOneByFood = (food, done) => {
+    Person.findOne(
+      {
+        favoriteFoods: food,
+      },
+      (err, data) => {
+        if (err) console.log(err);
+        else done(null, data);
+      }
+    );
+  };
+  ```
+
+### 7. Use model.findById() to Search Your Database By _id
+
+- When saving a document, MongoDB automatically adds the field `_id`, and set it to **a unique alphanumeric key**. Searching by `_id` is an extremely frequent operation, so Mongoose provides a dedicated method for it, using: `<Model>.findById()`.
+
+- :arrow_forward: **Challenge**: Modify the `findPersonById` to find the only person having a given `_id`, using `Model.findById() -> Person`. Use the function argument `personId` as the search key.
+
+  ``` js
+  const findPersonById = (personId, done) => {
+    Person.findById(
+      {
+        _id: personId,
+      },
+      (err, data) => {
+        if (err) console.log(err);
+        else done(null, data);
+      }
+    );
+  };
+  ```
+
+### 8. Perform Classic Updates by Running Find, Edit, then Save
+
+- In the good old days, this was what you needed to do if you wanted to edit a document, and be able to use it somehow (e.g. sending it back in a server response). Mongoose has a dedicated updating method: `<Model>.update()`. It is bound to the low-level mongo driver. It can bulk-edit many documents matching certain criteria, but it doesn’t send back the updated document, only a 'status' message. Furthermore, it makes model validations difficult, because it just directly calls the mongo driver.
+
+- :arrow_forward: **Challenge**: Modify the `findEditThenSave` function to find a person by `_id` (use any of the above methods) with the parameter `personId` as search key. Add `"hamburger"` to the list of the person's `favoriteFoods` (you can use `Array.push()`). Then - inside the find callback - `save()` the updated `Person`.
+
+  ``` js
+  const findEditThenSave = (personId, done) => {
+    const foodToAdd = "hamburger";
+    Person.findById(
+      {
+        _id: personId,
+      },
+      (err, result) => {
+        if (err) console.log(err);
+        else {
+          result.favoriteFoods.push(foodToAdd);
+          result.save((errS, data) => {
+            if (errS) console.log(errS);
+            else done(null, data);
+          });
+        }
+      }
+    );
+  };
+  ```
+
+### 9. Perform New Updates on a Document Using model.findOneAndUpdate()
+
+- Recent versions of Mongoose have methods to simplify documents updating. Some more advanced features (i.e. pre/post hooks, validation) behave differently with this approach, so the classic method is still useful in many situations. `findByIdAndUpdate()` can be used when searching by id.
+
+- :arrow_forward: **Challenge**: Modify the `findEditThenSave` function to find a person by `_id` (use any of the above methods) with the parameter `personId` as search key. Add `"hamburger"` to the list of the person's `favoriteFoods` (you can use `Array.push()`). Then - inside the find callback - `save()` the updated `Person`.
+
+  ``` js
+  const findAndUpdate = (personName, done) => {
+    const ageToSet = 20;
+    Person.findOneAndUpdate(
+      { name: personName },
+      { age: ageToSet },
+      { new: true },
+      (err, result) => {
+        if (err) console.log(err);
+        else {
+          done(null, result);
+        }
+      }
+    );
+  };
+  ```
+
+### 10. Delete One Document Using model.findByIdAndRemove
+
+- findByIdAndRemove and findOneAndRemove are like the previous update methods. They pass the removed document to the database. As usual, use the function argument personId as the search key.
+
+- :arrow_forward: **Challenge**: Modify the removeById function to delete one person by the person's _id. You should use one of the methods findByIdAndRemove() or findOneAndRemove().
+
+  ``` js
+  const removeById = (personId, done) => {
+    Person.findByIdAndRemove(
+      {
+        _id: personId,
+      },
+      (err, data) => {
+        if (err) console.log(err);
+        else done(null, data);
+      }
+    );
+  };
+  ```
+
+### 11. Delete Many Documents with model.remove()
+
+- `<Model>.remove()` is useful to delete all the documents matching the given criteria.
+
+- :arrow_forward: **Challenge**: Modify the `removeManyPeople` function to delete all the people whose name is within the variable `nameToRemove`, using `Model.remove()`. Pass it to a query document with the `name` field set, and a callback.
+- Note: The Model.remove() doesn’t return the deleted document, but a JSON object containing the outcome of the operation, and the number of items affected. Don’t forget to pass it to the done() callback, since we use it in tests.
+
+  ``` js
+  const removeManyPeople = (done) => {
+    const nameToRemove = "Mary";
+    Person.remove(
+      {
+        name: nameToRemove,
+      },
+      (err, data) => {
+        if (err) console.log(err);
+        else done(null, data);
+      }
+    );
+  };
+  ```
+
+### 12. Chain Search Query Helpers to Narrow Search Results
+
+- If you don’t pass the callback as the last argument to Model.find() (or to the other search methods), the query is not executed. You can store the query in a variable for later use. This kind of object enables you to build up a query using chaining syntax. The actual db search is executed when you finally chain the method .exec(). You always need to pass your callback to this last method. There are many query helpers, here we'll use the most commonly used.
+
+- :arrow_forward: **Challenge**: Modify the `queryChain` function to find people who like the food specified by the variable named `foodToSearch`. Sort them by `name`, limit the results to two documents, and hide their age. Chain `.find()`, `.sort()`, `.limit()`, `.select()`, and then `.exec()`. Pass the `done(err, data)` callback to `exec()`.
+
+  ``` js
+  const queryChain = (done) => {
+    const foodToSearch = "burrito";
+    Person.find({
+      favoriteFoods: foodToSearch,
+    })
+      .sort({ name: 1 })
+      .limit(2)
+      .select({ name: true })
+      .exec((err, result) => {
+        if (err) console.error(err);
+        else done(null, result);
+      });
+  };
+  ```
+
+**<div style="text-align: end; font-size: 15px;">[⬆ back to Top](#back-end-development-and-apis)</div>**
 
 ---
 
 ## Back End Development and APIs Projects ^soon^
+
+### Project 1: Timestamp Microservice
+
+- Reference: [freeCodeCamp: Timestamp Microservice project](https://www.freecodecamp.org/learn/back-end-development-and-apis/back-end-development-and-apis-projects/timestamp-microservice)
+- Demo project: [Timestamp Microservice](https://timestamp-microservice.freecodecamp.rocks/)
+
+#### Install and Setup
+
+- In my project, I choose a clone repository from GitHub.
+  - This is the GitHub repo [boilerplate-project-timestamp](https://github.com/freeCodeCamp/boilerplate-project-timestamp/).
+  - `git clone https://github.com/freeCodeCamp/boilerplate-project-timestamp.git`
+
+#### Requirement and Test
+
+- **Note**: Timezones conversion is not a purpose of this project, so assume all sent valid dates will be parsed with `new Date()` as GMT dates.
+  - [ ] You should provide your own project, not the example URL.
+  - [ ] A request to `/api/:date?` with a valid date should return a JSON object with a `unix` key that is a Unix timestamp of the input date in milliseconds (as type Number).
+  - [ ] A request to `/api/:date?` with a valid date should return a JSON object with a `utc` key that is a string of the input date in the format: `Thu, 01 Jan 1970 00:00:00 GMT`.
+  - [ ] A request to `/api/1451001600000` should return `{ unix: 1451001600000, utc: "Fri, 25 Dec 2015 00:00:00 GMT" }`.
+  - [ ] Your project can handle dates that can be successfully parsed by `new Date(date_string)`.
+  - [ ] If the input date string is invalid, the API returns an object having the structure `{ error : "Invalid Date" }`.
+  - [ ] An empty date parameter should return the current time in a JSON object with a `unix` key.
+  - [ ] An empty date parameter should return the current time in a JSON object with a `utc` key.
+
+#### Solution
+
+**<div style="text-align: end; font-size: 15px;">[⬆ back to Top](#back-end-development-and-apis)</div>**
+
+### Project 2: Request Header Parser Microservice
+
+### Project 3: URL Shortener Microservice
+
+### Project 4: Exercise Tracker
+
+### Project 5: File Metadata Microservice
